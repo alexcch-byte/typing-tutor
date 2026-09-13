@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="bg_top">#4F8EF7</color>
+    <color name="bg_bottom">#A55CF0</color>
+    <color name="game_bg_top">#1B1F3B</color>
+    <color name="game_bg_bottom">#3A2C5C</color>
+
+    <color name="accent_yellow">#FFD93D</color>
+    <color name="correct_green">#29C46F</color>
+    <color name="wrong_red">#FF5A5F</color>
+
+    <color name="text_primary">#FFFFFF</color>
+    <color name="text_secondary">#D8D8F0</color>
+
+    <color name="card_bg">#FFFFFF</color>
+    <color name="card_text">#2D2360</color>
+
+    <color name="letter_1">#FF6B6B</color>
+    <color name="letter_2">#4ECDC4</color>
+    <color name="letter_3">#FFD93D</color>
+    <color name="letter_4">#95E06C</color>
+    <color name="letter_5">#A78BFA</color>
+    <color name="letter_6">#FF9F45</color>
+</resources>

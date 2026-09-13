@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Typing Tutor</string>
+    <string name="tagline">Connect a Bluetooth keyboard and start typing!</string>
+    <string name="falling_letters">Falling Letters</string>
+    <string name="choose_level">Choose a level</string>
+    <string name="best_score_format">Best: %1$d</string>
+    <string name="no_keyboard_hint">Tip: pair a Bluetooth keyboard with your Fire tablet in Settings → Wireless → Bluetooth, then come back here to play.</string>
+
+    <string name="score_format">Score: %1$d</string>
+    <string name="lives_format">Lives: %1$d</string>
+    <string name="combo_format">Combo x%1$d</string>
+    <string name="level_label_format">%1$s</string>
+
+    <string name="game_over">Game Over</string>
+    <string name="final_score_format">Final score: %1$d</string>
+    <string name="new_best">New best score!</string>
+    <string name="retry">Play Again</string>
+    <string name="home">Home</string>
+    <string name="paused">Paused</string>
+    <string name="resume">Resume</string>
+
+    <string name="level_left_hand_home_name">Left Hand (Home)</string>
+    <string name="level_left_hand_home_desc">a s d f · left hand</string>
+    <string name="level_right_hand_home_name">Right Hand (Home)</string>
+    <string name="level_right_hand_home_desc">j k l ; · right hand</string>
+    <string name="level_home_row_name">Home Row</string>
+    <string name="level_home_row_desc">a s d f · j k l ;</string>
+    <string name="level_top_row_name">Top Row</string>
+    <string name="level_top_row_desc">q w e r t · y u i o p</string>
+    <string name="level_bottom_row_name">Bottom Row</string>
+    <string name="level_bottom_row_desc">z x c v b · n m , . /</string>
+    <string name="level_numbers_name">Numbers</string>
+    <string name="level_numbers_desc">0 1 2 3 4 5 6 7 8 9</string>
+    <string name="level_all_letters_name">All Letters</string>
+    <string name="level_all_letters_desc">a through z</string>
+    <string name="level_uppercase_name">Capital Letters</string>
+    <string name="level_uppercase_desc">A through Z — practice Shift</string>
+    <string name="level_mixed_name">Mixed Challenge</string>
+    <string name="level_mixed_desc">letters + numbers</string>
+
+    <string name="game_falling_letters">Falling Letters</string>
+    <string name="game_falling_letters_desc">Type the letter before it lands</string>
+    <string name="game_word_rain">Word Rain</string>
+    <string name="game_word_rain_desc">Type whole words as they fall</string>
+    <string name="game_typing_race">Typing Race</string>
+    <string name="game_typing_race_desc">Type sentences for speed and accuracy</string>
+
+    <string name="word_short_name">Short Words</string>
+    <string name="word_short_desc">3–4 letters: cat, frog, star…</string>
+    <string name="word_medium_name">Medium Words</string>
+    <string name="word_medium_desc">5–6 letters: apple, dragon…</string>
+    <string name="word_long_name">Long Words</string>
+    <string name="word_long_desc">7+ letters: elephant, computer…</string>
+
+    <string name="race_easy_name">Easy Sentences</string>
+    <string name="race_easy_desc">lowercase, no punctuation</string>
+    <string name="race_medium_name">Medium Sentences</string>
+    <string name="race_medium_desc">capitals and punctuation</string>
+    <string name="race_hard_name">Hard Sentences</string>
+    <string name="race_hard_desc">numbers, symbols, mixed case</string>
+
+    <string name="best_wpm_format">Best: %1$d WPM</string>
+    <string name="wpm_format">%1$d WPM</string>
+    <string name="accuracy_format">%1$d%% acc</string>
+    <string name="time_format">%1$.1fs</string>
+    <string name="sentence_progress_format">Sentence %1$d of %2$d</string>
+    <string name="session_complete">Great typing!</string>
+    <string name="session_summary_format">%1$d WPM · %2$d%% accuracy</string>
+    <string name="new_best_wpm">New best WPM!</string>
+</resources>
