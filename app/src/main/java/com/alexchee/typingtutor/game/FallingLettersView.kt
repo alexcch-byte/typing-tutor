@@ -53,7 +53,7 @@ class FallingLettersView @JvmOverloads constructor(
         Color.parseColor("#FF9F45"),
     )
 
-    private var level: Level = Level.LEFT_HAND_HOME
+    private var level: Level = Level.STARTER_FJ
     private var score = 0
     private var lives = 5
     private var combo = 0
@@ -174,7 +174,15 @@ class FallingLettersView @JvmOverloads constructor(
         val hit = letters.removeAt(matchIndex)
         combo++
         val gained = 10 + (combo - 1) * 2
+        val oldTier = level.getTier(score)
         score += gained
+        val newTier = level.getTier(score)
+        if (newTier > oldTier) {
+            val announcement = level.getTierAnnouncement(newTier)
+            if (announcement != null) {
+                popups.add(Popup(announcement, width / 2f, height * 0.38f, Color.parseColor("#FFD93D")))
+            }
+        }
         listener?.onScoreChanged(score)
         listener?.onComboChanged(combo)
         listener?.onLetterHit(combo)
@@ -209,7 +217,11 @@ class FallingLettersView @JvmOverloads constructor(
         if (width == 0 || height == 0) return
 
         spawnAccumulatorMs += (dt * 1000).toLong()
-        val spawnIntervalMs = max(450L, level.baseSpawnMs - score * 4L)
+        val spawnIntervalMs = if (level.isProgressive) {
+            max(2400L, level.baseSpawnMs - (score / 100) * 120L)
+        } else {
+            max(450L, level.baseSpawnMs - score * 4L)
+        }
         if (spawnAccumulatorMs >= spawnIntervalMs) {
             spawnAccumulatorMs = 0L
             spawnLetter()
@@ -308,9 +320,13 @@ class FallingLettersView @JvmOverloads constructor(
     }
 
     private fun spawnLetter() {
-        val speedMultiplier = (1f + score / 150f).coerceAtMost(2.4f)
+        val speedMultiplier = if (level.isProgressive) {
+            (1f + score / 600f).coerceAtMost(1.4f)
+        } else {
+            (1f + score / 150f).coerceAtMost(2.4f)
+        }
         val fallSpeed = (height / level.baseFallSeconds) * speedMultiplier
-        val char = level.chars.random(Random)
+        val char = level.getAvailableChars(score).random(Random)
         val margin = tileSize
         val x = if (width > margin * 2) Random.nextFloat() * (width - margin * 2) + margin else width / 2f
         val color = letterColors.random(Random)

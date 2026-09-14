@@ -13,7 +13,18 @@ enum class Level(
     val requireExactCase: Boolean,
     val baseFallSeconds: Float,
     val baseSpawnMs: Long,
+    val isProgressive: Boolean = false,
 ) {
+    STARTER_FJ(
+        id = "starter_fj",
+        displayNameRes = R.string.level_starter_name,
+        descriptionRes = R.string.level_starter_desc,
+        chars = "fj".toList(),
+        requireExactCase = false,
+        baseFallSeconds = 13.0f,
+        baseSpawnMs = 3500L,
+        isProgressive = true,
+    ),
     LEFT_HAND_HOME(
         id = "left_hand_home",
         displayNameRes = R.string.level_left_hand_home_name,
@@ -97,7 +108,35 @@ enum class Level(
     ),
     ;
 
+    fun getAvailableChars(score: Int): List<Char> {
+        if (!isProgressive) return chars
+        return when {
+            score >= 600 -> "fjdskla;".toList()
+            score >= 500 -> "fjdskla".toList()
+            score >= 400 -> "fjdskl".toList()
+            score >= 300 -> "fjdsk".toList()
+            score >= 200 -> "fjdk".toList()
+            score >= 100 -> "fjd".toList()
+            else         -> "fj".toList()
+        }
+    }
+
+    fun getTier(score: Int): Int {
+        if (!isProgressive) return 0
+        return (score / 100).coerceAtMost(6)
+    }
+
+    fun getTierAnnouncement(tier: Int): String? = when (tier) {
+        1 -> "★ New Key: D! ★"
+        2 -> "★ New Key: K! ★"
+        3 -> "★ New Key: S! ★"
+        4 -> "★ New Key: L! ★"
+        5 -> "★ New Key: A! ★"
+        6 -> "★ New Key: ; (All Home Row Unlocked!) ★"
+        else -> null
+    }
+
     companion object {
-        fun fromId(id: String?): Level = entries.firstOrNull { it.id == id } ?: LEFT_HAND_HOME
+        fun fromId(id: String?): Level = entries.firstOrNull { it.id == id } ?: STARTER_FJ
     }
 }

@@ -20,6 +20,8 @@
     <string name="paused">Paused</string>
     <string name="resume">Resume</string>
 
+    <string name="level_starter_name">First Keys: F &amp; J</string>
+    <string name="level_starter_desc">f · j index keys, adds a new key every 100 pts</string>
     <string name="level_left_hand_home_name">Left Hand (Home)</string>
     <string name="level_left_hand_home_desc">a s d f · left hand</string>
     <string name="level_right_hand_home_name">Right Hand (Home)</string>
