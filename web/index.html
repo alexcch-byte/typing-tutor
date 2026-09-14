@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Typing Tutor</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- ============ HOME SCREEN ============ -->
+<div id="homeScreen" class="screen home-screen">
+  <div class="home-header">
+    <h1>Typing Tutor</h1>
+    <p class="tagline">Plug in any keyboard and start typing!</p>
+    <div id="gameTabs" class="tab-row"></div>
+  </div>
+  <div class="home-scroll">
+    <div id="levelList" class="level-list"></div>
+  </div>
+</div>
+
+<!-- ============ FALLING LETTERS / WORD RAIN (canvas games) ============ -->
+<div id="gameScreen" class="screen game-screen" hidden>
+  <div class="hud">
+    <span id="hudLevel" class="hud-level"></span>
+    <span id="hudCombo" class="hud-combo"></span>
+    <span id="hudScore" class="hud-score"></span>
+    <span id="hudLives" class="hud-lives"></span>
+    <button id="pauseButton" class="icon-button" aria-label="Pause"><span class="pause-icon"></span></button>
+  </div>
+  <div class="stage">
+    <canvas id="gameCanvas"></canvas>
+  </div>
+
+  <div id="pauseOverlay" class="overlay" hidden>
+    <div class="panel">
+      <h2>Paused</h2>
+      <button id="resumeButton" class="btn btn-primary">Resume</button>
+      <button id="pauseHomeButton" class="btn btn-text">Home</button>
+    </div>
+  </div>
+
+  <div id="gameOverOverlay" class="overlay" hidden>
+    <div class="panel">
+      <h2>Game Over</h2>
+      <p id="finalScoreLabel" class="panel-score"></p>
+      <p id="newBestLabel" class="panel-best" hidden>New best score!</p>
+      <button id="retryButton" class="btn btn-primary">Play Again</button>
+      <button id="gameOverHomeButton" class="btn btn-text">Home</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ TYPING RACE (DOM-based) ============ -->
+<div id="raceScreen" class="screen race-screen" hidden>
+  <div class="hud">
+    <span id="raceHudLevel" class="hud-level"></span>
+    <span id="raceHudTime" class="hud-time"></span>
+    <span id="raceHudAccuracy" class="hud-accuracy"></span>
+    <span id="raceHudWpm" class="hud-wpm"></span>
+    <button id="racePauseButton" class="icon-button" aria-label="Pause"><span class="pause-icon"></span></button>
+  </div>
+  <div class="race-body">
+    <p id="raceProgressLabel" class="race-progress"></p>
+    <div class="sentence-card">
+      <p id="sentenceText" class="sentence-text"></p>
+    </div>
+  </div>
+
+  <div id="racePauseOverlay" class="overlay" hidden>
+    <div class="panel">
+      <h2>Paused</h2>
+      <button id="raceResumeButton" class="btn btn-primary">Resume</button>
+      <button id="racePauseHomeButton" class="btn btn-text">Home</button>
+    </div>
+  </div>
+
+  <div id="sessionCompleteOverlay" class="overlay" hidden>
+    <div class="panel">
+      <h2>Great typing!</h2>
+      <p id="sessionSummaryLabel" class="panel-score"></p>
+      <p id="raceNewBestLabel" class="panel-best" hidden>New best WPM!</p>
+      <button id="raceRetryButton" class="btn btn-primary">Play Again</button>
+      <button id="sessionCompleteHomeButton" class="btn btn-text">Home</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
