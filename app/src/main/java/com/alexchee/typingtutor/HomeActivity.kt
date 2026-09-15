@@ -8,6 +8,7 @@ import androidx.core.content.ContextCompat
 import com.alexchee.typingtutor.databinding.ActivityHomeBinding
 import com.alexchee.typingtutor.databinding.ItemLevelBinding
 import com.alexchee.typingtutor.game.FallingLettersActivity
+import com.alexchee.typingtutor.game.KeyHeroActivity
 import com.alexchee.typingtutor.game.TypingRaceActivity
 import com.alexchee.typingtutor.game.WordRainActivity
 
@@ -88,6 +89,14 @@ class HomeActivity : AppCompatActivity() {
                     getString(level.descriptionRes),
                     getString(R.string.best_wpm_format, scoreStore.bestValue("tr_${level.id}")),
                 ) { TypingRaceActivity.start(this, level) }
+            }
+            GameType.KEY_HERO -> for (level in RhythmLevel.entries) {
+                addLevelCard(
+                    inflater,
+                    getString(level.displayNameRes),
+                    getString(level.descriptionRes),
+                    getString(R.string.best_score_format, scoreStore.bestValue("kh_${level.id}")),
+                ) { KeyHeroActivity.start(this, level) }
             }
         }
     }

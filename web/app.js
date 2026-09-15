@@ -88,10 +88,20 @@ const SENTENCE_LEVELS = [
       "Don't forget: practice makes perfect, even on day 30.", 'Why do owls sleep by day but hunt at night?'] },
 ];
 
+const RHYTHM_LEVELS = [
+  { id: 'keyhero_easy', name: 'Easy Beat', desc: 'slow, one note at a time',
+    baseFallSeconds: 3.2, baseSpawnMs: 900, chordChance: 0, maxChordSize: 1 },
+  { id: 'keyhero_medium', name: 'Medium Beat', desc: 'faster, occasional chords',
+    baseFallSeconds: 2.5, baseSpawnMs: 650, chordChance: 0.2, maxChordSize: 2 },
+  { id: 'keyhero_hard', name: 'Hard Beat', desc: 'fast, frequent chords',
+    baseFallSeconds: 1.8, baseSpawnMs: 480, chordChance: 0.35, maxChordSize: 3 },
+];
+
 const GAME_TYPES = [
   { id: 'falling_letters', title: 'Falling Letters' },
   { id: 'word_rain', title: 'Word Rain' },
   { id: 'typing_race', title: 'Typing Race' },
+  { id: 'key_hero', title: 'Key Hero' },
 ];
 
 /* =====================================================================
@@ -775,6 +785,282 @@ class WordRainGame {
 }
 
 /* =====================================================================
+ * Key Hero — Guitar-Hero-style rhythm mode: 8 fixed lanes (one per
+ * home-row key), notes scroll down toward a strike line near the
+ * bottom. Hitting a lane's key while a note is near the line pops it
+ * (graded Perfect/Good by timing); letting one pass detonates it.
+ * ===================================================================== */
+
+const LANE_KEYS = ['a', 's', 'd', 'f', 'j', 'k', 'l', ';'];
+const LANE_COLORS = ['#FF6B6B', '#FF9F45', '#FFD93D', '#95E06C', '#4ECDC4', '#4FC3F7', '#A78BFA', '#F06292'];
+
+class KeyHeroGame {
+  constructor(canvas) {
+    this.canvas = canvas;
+    this.ctx = canvas.getContext('2d');
+    this.explosionSystem = new ExplosionSystem();
+    this.listener = null;
+    this.hitLineFraction = 0.82;
+    this.perfectWindowMs = 80;
+    this.goodWindowMs = 160;
+    this.laneFlash = new Array(LANE_KEYS.length).fill(0);
+    this.reset();
+  }
+
+  configure(level) {
+    this.level = level;
+    this.reset();
+  }
+
+  reset() {
+    this.notes = [];
+    this.popups = [];
+    this.explosionSystem.clear();
+    this.laneFlash.fill(0);
+    this.score = 0;
+    this.lives = 5;
+    this.combo = 0;
+    this.spawnAccumulatorMs = 0;
+    this.running = false;
+    this.lastFrameTime = 0;
+    this._fire('onScoreChanged', this.score);
+    this._fire('onLivesChanged', this.lives);
+    this._fire('onComboChanged', this.combo);
+  }
+
+  start() {
+    if (this.running) return;
+    this.running = true;
+    this.lastFrameTime = 0;
+    this._raf = requestAnimationFrame(this._frame.bind(this));
+  }
+
+  pause() {
+    this.running = false;
+    if (this._raf) cancelAnimationFrame(this._raf);
+  }
+
+  resume() { this.start(); }
+
+  _laneForKey(c) {
+    return LANE_KEYS.indexOf(c.toLowerCase());
+  }
+
+  _laneX(lane) {
+    const width = this.canvas._cssWidth;
+    return (width / LANE_KEYS.length) * (lane + 0.5);
+  }
+
+  handleTypedChar(c) {
+    const lane = this._laneForKey(c);
+    if (lane === -1 || !this.running) return 'IGNORED';
+
+    this.laneFlash[lane] = 1;
+    const hitLineY = this.canvas._cssHeight * this.hitLineFraction;
+    const candidates = this.notes.filter(n => n.lane === lane);
+    let best = null, bestDist = Infinity;
+    for (const n of candidates) {
+      const d = Math.abs(n.y - hitLineY);
+      if (d < bestDist) { bestDist = d; best = n; }
+    }
+    if (!best) {
+      this.combo = 0;
+      this._fire('onComboChanged', this.combo);
+      return 'MISS_NO_MATCH';
+    }
+
+    const goodWindowPx = best.fallSpeed * (this.goodWindowMs / 1000);
+    if (bestDist > goodWindowPx) {
+      this.combo = 0;
+      this._fire('onComboChanged', this.combo);
+      return 'MISS_NO_MATCH';
+    }
+
+    this.notes = this.notes.filter(n => n !== best);
+    const perfectWindowPx = best.fallSpeed * (this.perfectWindowMs / 1000);
+    const isPerfect = bestDist <= perfectWindowPx;
+    this.combo++;
+    const gained = isPerfect ? 100 + (this.combo - 1) * 5 : 50 + (this.combo - 1) * 3;
+    this.score += gained;
+    this._fire('onScoreChanged', this.score);
+    this._fire('onComboChanged', this.combo);
+    this._fire('onNoteHit', this.combo);
+    this.popups.push({
+      text: (isPerfect ? 'PERFECT +' : 'GOOD +') + gained,
+      x: this._laneX(lane), y: hitLineY - 40, color: LANE_COLORS[lane], life: 1,
+    });
+    return 'HIT';
+  }
+
+  _frame(t) {
+    if (!this.running) return;
+    if (this.lastFrameTime === 0) this.lastFrameTime = t;
+    const dt = clamp((t - this.lastFrameTime) / 1000, 0, 0.05);
+    this.lastFrameTime = t;
+    this._update(dt);
+    this._draw();
+    this._raf = requestAnimationFrame(this._frame.bind(this));
+  }
+
+  _tileSize() {
+    const width = this.canvas._cssWidth, height = this.canvas._cssHeight;
+    const laneWidth = width / LANE_KEYS.length;
+    return clamp(Math.min(laneWidth * 0.82, height * 0.09), 32, 200);
+  }
+
+  _update(dt) {
+    const width = this.canvas._cssWidth, height = this.canvas._cssHeight;
+    if (!width || !height) return;
+    const hitLineY = height * this.hitLineFraction;
+    const tileSize = this._tileSize();
+
+    this.spawnAccumulatorMs += dt * 1000;
+    const spawnIntervalMs = Math.max(300, this.level.baseSpawnMs - this.score * 1.2);
+    if (this.spawnAccumulatorMs >= spawnIntervalMs) {
+      this.spawnAccumulatorMs = 0;
+      this._spawnNotes(height, tileSize);
+    }
+
+    let missed = false;
+    this.notes = this.notes.filter(note => {
+      note.y += note.fallSpeed * dt;
+      const goodWindowPx = note.fallSpeed * (this.goodWindowMs / 1000);
+      if (note.y > hitLineY + goodWindowPx) {
+        this.explosionSystem.trigger(this._laneX(note.lane), hitLineY, tileSize * 1.4, tileSize * 0.4, 16, 8, 0.45);
+        this._fire('onNoteMissed');
+        missed = true;
+        return false;
+      }
+      return true;
+    });
+    if (missed) {
+      this.combo = 0;
+      this.lives--;
+      this._fire('onComboChanged', this.combo);
+      this._fire('onLivesChanged', this.lives);
+      if (this.lives <= 0) {
+        this.running = false;
+        if (this._raf) cancelAnimationFrame(this._raf);
+        this._fire('onGameOver', this.score);
+        return;
+      }
+    }
+
+    this.explosionSystem.update(dt);
+    for (let i = 0; i < this.laneFlash.length; i++) {
+      if (this.laneFlash[i] > 0) this.laneFlash[i] = Math.max(0, this.laneFlash[i] - dt * 4);
+    }
+
+    this.popups = this.popups.filter(p => {
+      p.y -= 50 * dt;
+      p.life -= dt / 0.6;
+      return p.life > 0;
+    });
+  }
+
+  _spawnNotes(height, tileSize) {
+    const speedMultiplier = Math.min(1.5, 1 + this.score / 500);
+    const fallSpeed = (height / this.level.baseFallSeconds) * speedMultiplier;
+
+    const eligibleLanes = [];
+    for (let lane = 0; lane < LANE_KEYS.length; lane++) {
+      const blocked = this.notes.some(n => n.lane === lane && n.y < tileSize * 2.2);
+      if (!blocked) eligibleLanes.push(lane);
+    }
+    if (eligibleLanes.length === 0) return;
+
+    let chordSize = 1;
+    if (this.level.maxChordSize > 1 && Math.random() < this.level.chordChance) {
+      chordSize = 2 + Math.floor(Math.random() * (this.level.maxChordSize - 1));
+    }
+    chordSize = Math.min(chordSize, eligibleLanes.length);
+
+    const shuffled = eligibleLanes.sort(() => Math.random() - 0.5).slice(0, chordSize);
+    for (const lane of shuffled) {
+      this.notes.push({ lane, y: -tileSize, fallSpeed });
+    }
+  }
+
+  _draw() {
+    const ctx = this.ctx, width = this.canvas._cssWidth, height = this.canvas._cssHeight;
+    const hitLineY = height * this.hitLineFraction;
+    const tileSize = this._tileSize();
+    const laneWidth = width / LANE_KEYS.length;
+
+    ctx.save();
+    const shake = this.explosionSystem.shakeIntensity;
+    if (shake > 0) ctx.translate((Math.random() * 2 - 1) * shake, (Math.random() * 2 - 1) * shake);
+
+    const grad = ctx.createLinearGradient(0, 0, width, height);
+    grad.addColorStop(0, '#1B1F3B');
+    grad.addColorStop(1, '#3A2C5C');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, width, height);
+
+    ctx.strokeStyle = 'rgba(255,255,255,0.16)';
+    ctx.lineWidth = 2;
+    for (let i = 1; i < LANE_KEYS.length; i++) {
+      const x = laneWidth * i;
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, height);
+      ctx.stroke();
+    }
+
+    ctx.strokeStyle = '#FFFFFF';
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.moveTo(0, hitLineY);
+    ctx.lineTo(width, hitLineY);
+    ctx.stroke();
+
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'alphabetic';
+    const fontSize = tileSize * 0.42;
+    ctx.font = `bold ${fontSize}px -apple-system, "Segoe UI", Roboto, sans-serif`;
+
+    for (let lane = 0; lane < LANE_KEYS.length; lane++) {
+      const cx = this._laneX(lane);
+      const half = tileSize / 2;
+      const flash = this.laneFlash[lane];
+      ctx.globalAlpha = clamp((70 + flash * 140) / 255, 0, 1);
+      ctx.fillStyle = LANE_COLORS[lane];
+      roundRectPath(ctx, cx - half, hitLineY - half, tileSize, tileSize, 10);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillText(LANE_KEYS[lane], cx, hitLineY + fontSize * 0.35);
+    }
+
+    for (const note of this.notes) {
+      const cx = this._laneX(note.lane);
+      const half = tileSize / 2;
+      ctx.fillStyle = LANE_COLORS[note.lane];
+      roundRectPath(ctx, cx - half, note.y - half, tileSize, tileSize, 12);
+      ctx.fill();
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillText(LANE_KEYS[note.lane], cx, note.y + fontSize * 0.35);
+    }
+
+    this.explosionSystem.draw(ctx, tileSize);
+
+    ctx.font = 'bold 20px -apple-system, "Segoe UI", Roboto, sans-serif';
+    for (const popup of this.popups) {
+      ctx.fillStyle = popup.color;
+      ctx.globalAlpha = clamp(popup.life, 0, 1);
+      ctx.fillText(popup.text, popup.x, popup.y);
+      ctx.globalAlpha = 1;
+    }
+
+    ctx.restore();
+  }
+
+  _fire(name, ...args) {
+    if (this.listener && this.listener[name]) this.listener[name](...args);
+  }
+}
+
+/* =====================================================================
  * Typing Race — DOM-based sentence typing with WPM/accuracy tracking.
  * A wrong key does not advance the cursor; the child must correct it,
  * which builds accuracy rather than just speed.
@@ -968,6 +1254,7 @@ const App = {
 
     this.canvasGame = new FallingLettersGame(this.els.canvas);
     this.wordRainGame = new WordRainGame(this.els.canvas);
+    this.keyHeroGame = new KeyHeroGame(this.els.canvas);
     this.raceGame = new TypingRaceGame({
       progress: this.els.raceProgressLabel,
       sentence: this.els.sentenceText,
@@ -1016,10 +1303,14 @@ const App = {
       levels = WORD_LEVELS; prefix = 'wr_';
       bestFormat = v => `Best: ${v}`;
       onSelect = level => this.startWordRain(level);
-    } else {
+    } else if (this.selectedGame === 'typing_race') {
       levels = SENTENCE_LEVELS; prefix = 'tr_';
       bestFormat = v => `Best: ${v} WPM`;
       onSelect = level => this.startTypingRace(level);
+    } else {
+      levels = RHYTHM_LEVELS; prefix = 'kh_';
+      bestFormat = v => `Best: ${v}`;
+      onSelect = level => this.startKeyHero(level);
     }
 
     for (const level of levels) {
@@ -1042,6 +1333,7 @@ const App = {
   showHome() {
     this.canvasGame.pause();
     this.wordRainGame.pause();
+    this.keyHeroGame.pause();
     this.raceGame.onPause();
     this.activeScreen = 'home';
     this.els.homeScreen.hidden = false;
@@ -1064,9 +1356,12 @@ const App = {
       onWordSpawned: () => soundPlayer.playFallingWhistle(),
       onWordCompleted: combo => soundPlayer.playPop(combo),
       onWordExploded: () => soundPlayer.playExplosion(),
+      onNoteHit: combo => soundPlayer.playPop(combo),
+      onNoteMissed: () => soundPlayer.playExplosion(),
     };
     this.canvasGame.listener = listener;
     this.wordRainGame.listener = listener;
+    this.keyHeroGame.listener = listener;
 
     this.els.pauseButton.addEventListener('click', () => this.showPause());
     this.els.resumeButton.addEventListener('click', () => this.hidePause());
@@ -1076,7 +1371,9 @@ const App = {
   },
 
   _activeCanvasGame() {
-    return this.activeScreen === 'word_rain' ? this.wordRainGame : this.canvasGame;
+    if (this.activeScreen === 'word_rain') return this.wordRainGame;
+    if (this.activeScreen === 'key_hero') return this.keyHeroGame;
+    return this.canvasGame;
   },
 
   startFallingLetters(level) {
@@ -1111,6 +1408,22 @@ const App = {
     this.wordRainGame.start();
   },
 
+  startKeyHero(level) {
+    soundPlayer.stopAllWhistles();
+    this.activeScreen = 'key_hero';
+    this.isPaused = false;
+    this.isSessionOver = false;
+    this.els.homeScreen.hidden = true;
+    this.els.raceScreen.hidden = true;
+    this.els.gameScreen.hidden = false;
+    this.els.pauseOverlay.hidden = true;
+    this.els.gameOverOverlay.hidden = true;
+    this.els.hudLevel.textContent = level.name;
+    this._resizeCanvas();
+    this.keyHeroGame.configure(level);
+    this.keyHeroGame.start();
+  },
+
   _retryCanvasGame() {
     soundPlayer.stopAllWhistles();
     this.isSessionOver = false;
@@ -1124,8 +1437,8 @@ const App = {
   _onCanvasGameOver(score) {
     soundPlayer.stopAllWhistles();
     this.isSessionOver = true;
-    const prefix = this.activeScreen === 'word_rain' ? 'wr_' : 'ft_';
-    const level = this.activeScreen === 'word_rain' ? this.wordRainGame.level : this.canvasGame.level;
+    const prefix = { word_rain: 'wr_', key_hero: 'kh_', falling_letters: 'ft_' }[this.activeScreen];
+    const level = this._activeCanvasGame().level;
     const isNewBest = ScoreStore.submitValue(prefix + level.id, score);
     this.els.finalScoreLabel.textContent = `Final score: ${score}`;
     this.els.newBestLabel.hidden = !isNewBest;
@@ -1219,9 +1532,10 @@ const App = {
 
     const game = this._activeCanvasGame();
     const c = e.key;
-    const allowed = this.activeScreen === 'word_rain'
-      ? /^[a-zA-Z]$/.test(c)
-      : /^[a-zA-Z0-9;,./]$/.test(c);
+    let allowed;
+    if (this.activeScreen === 'word_rain') allowed = /^[a-zA-Z]$/.test(c);
+    else if (this.activeScreen === 'key_hero') allowed = /^[a-zA-Z;]$/.test(c);
+    else allowed = /^[a-zA-Z0-9;,./]$/.test(c);
     if (!allowed) return;
 
     const result = game.handleTypedChar(c);

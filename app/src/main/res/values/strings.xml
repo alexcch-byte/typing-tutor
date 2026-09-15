@@ -70,4 +70,13 @@
     <string name="session_complete">Great typing!</string>
     <string name="session_summary_format">%1$d WPM · %2$d%% accuracy</string>
     <string name="new_best_wpm">New best WPM!</string>
+
+    <string name="game_key_hero">Key Hero</string>
+    <string name="game_key_hero_desc">Hit each key as it crosses the line</string>
+    <string name="keyhero_easy_name">Easy Beat</string>
+    <string name="keyhero_easy_desc">slow, one note at a time</string>
+    <string name="keyhero_medium_name">Medium Beat</string>
+    <string name="keyhero_medium_desc">faster, occasional chords</string>
+    <string name="keyhero_hard_name">Hard Beat</string>
+    <string name="keyhero_hard_desc">fast, frequent chords</string>
 </resources>

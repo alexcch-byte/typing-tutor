@@ -48,6 +48,13 @@
             android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout"
             android:theme="@style/Theme.TypingTutor.Game" />
 
+        <activity
+            android:name=".game.KeyHeroActivity"
+            android:exported="false"
+            android:screenOrientation="landscape"
+            android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout"
+            android:theme="@style/Theme.TypingTutor.Game" />
+
     </application>
 
 </manifest>
