@@ -86,7 +86,7 @@ class KeyHeroView @JvmOverloads constructor(
     private var lastFrameNanos = 0L
 
     private val startingLives = 5
-    private val hitLineFraction = 0.82f
+    private val hitLineFraction = 0.90f
     private val perfectWindowMs = 80f
     private val goodWindowMs = 160f
 
@@ -296,7 +296,7 @@ class KeyHeroView @JvmOverloads constructor(
     }
 
     private fun spawnNotes(tileSize: Float) {
-        val speedMultiplier = min(1.5f, 1f + score / 500f)
+        val speedMultiplier = min(1.3f, 1f + score / 800f)
         val fallSpeed = (height / level.baseFallSeconds) * speedMultiplier
 
         val eligibleLanes = (0 until laneCount).filter { lane ->

@@ -90,11 +90,11 @@ const SENTENCE_LEVELS = [
 
 const RHYTHM_LEVELS = [
   { id: 'keyhero_easy', name: 'Easy Beat', desc: 'slow, one note at a time',
-    baseFallSeconds: 3.2, baseSpawnMs: 900, chordChance: 0, maxChordSize: 1 },
+    baseFallSeconds: 4.5, baseSpawnMs: 1250, chordChance: 0, maxChordSize: 1 },
   { id: 'keyhero_medium', name: 'Medium Beat', desc: 'faster, occasional chords',
-    baseFallSeconds: 2.5, baseSpawnMs: 650, chordChance: 0.2, maxChordSize: 2 },
+    baseFallSeconds: 3.5, baseSpawnMs: 900, chordChance: 0.2, maxChordSize: 2 },
   { id: 'keyhero_hard', name: 'Hard Beat', desc: 'fast, frequent chords',
-    baseFallSeconds: 1.8, baseSpawnMs: 480, chordChance: 0.35, maxChordSize: 3 },
+    baseFallSeconds: 2.6, baseSpawnMs: 700, chordChance: 0.35, maxChordSize: 3 },
 ];
 
 const GAME_TYPES = [
@@ -800,7 +800,7 @@ class KeyHeroGame {
     this.ctx = canvas.getContext('2d');
     this.explosionSystem = new ExplosionSystem();
     this.listener = null;
-    this.hitLineFraction = 0.82;
+    this.hitLineFraction = 0.90;
     this.perfectWindowMs = 80;
     this.goodWindowMs = 160;
     this.laneFlash = new Array(LANE_KEYS.length).fill(0);
@@ -959,7 +959,7 @@ class KeyHeroGame {
   }
 
   _spawnNotes(height, tileSize) {
-    const speedMultiplier = Math.min(1.5, 1 + this.score / 500);
+    const speedMultiplier = Math.min(1.3, 1 + this.score / 800);
     const fallSpeed = (height / this.level.baseFallSeconds) * speedMultiplier;
 
     const eligibleLanes = [];
