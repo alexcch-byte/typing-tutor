@@ -11,8 +11,24 @@
 <!-- ============ HOME SCREEN ============ -->
 <div id="homeScreen" class="screen home-screen">
   <div class="home-header">
-    <h1>Typing Tutor</h1>
-    <p class="tagline">Plug in any keyboard and start typing!</p>
+    <div class="hero-row">
+      <div class="mascot" aria-hidden="true">
+        <svg viewBox="0 0 100 100" width="64" height="64">
+          <rect x="8" y="8" width="84" height="84" rx="22" fill="#FFD93D"/>
+          <circle cx="35" cy="45" r="6" fill="#2D2360"/>
+          <circle cx="65" cy="45" r="6" fill="#2D2360"/>
+          <path d="M32 60 Q50 76 68 60" stroke="#2D2360" stroke-width="6" fill="none" stroke-linecap="round"/>
+          <path class="wave-arm" d="M90 38 Q106 26 100 10" stroke="#2D2360" stroke-width="6" fill="none" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="hero-text">
+        <p id="greetingLabel" class="greeting">Hello!</p>
+        <h1>Typing Tutor</h1>
+      </div>
+    </div>
+    <p class="tagline">Pick a game below and start practicing!</p>
+    <button id="continueCard" class="continue-card" hidden></button>
+    <p id="statsStrip" class="stats-strip" hidden></p>
     <div id="gameTabs" class="tab-row"></div>
   </div>
   <div class="home-scroll">

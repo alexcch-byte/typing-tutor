@@ -25,7 +25,24 @@ class ScoreStore(context: Context) {
 
     private fun prefKey(key: String) = "best_$key"
 
+    /** Remembers the most recently played game+level so the home screen can offer to resume it. */
+    fun saveLastPlayed(gameTypeId: String, levelId: String) {
+        prefs.edit()
+            .putString(KEY_LAST_GAME_TYPE, gameTypeId)
+            .putString(KEY_LAST_LEVEL_ID, levelId)
+            .apply()
+    }
+
+    /** Returns (gameTypeId, levelId) of the last-played level, or null if none yet. */
+    fun lastPlayed(): Pair<String, String>? {
+        val gameTypeId = prefs.getString(KEY_LAST_GAME_TYPE, null) ?: return null
+        val levelId = prefs.getString(KEY_LAST_LEVEL_ID, null) ?: return null
+        return gameTypeId to levelId
+    }
+
     companion object {
         private const val PREFS_NAME = "typing_tutor_scores"
+        private const val KEY_LAST_GAME_TYPE = "last_played_game_type"
+        private const val KEY_LAST_LEVEL_ID = "last_played_level_id"
     }
 }

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Typing Tutor</string>
-    <string name="tagline">Connect a Bluetooth keyboard and start typing!</string>
+    <string name="tagline">Pick a game below and start practicing!</string>
     <string name="falling_letters">Falling Letters</string>
     <string name="choose_level">Choose a level</string>
     <string name="best_score_format">Best: %1$d</string>
@@ -79,4 +79,16 @@
     <string name="keyhero_medium_desc">faster, occasional chords</string>
     <string name="keyhero_hard_name">Hard Beat</string>
     <string name="keyhero_hard_desc">fast, frequent chords</string>
+
+    <string name="greeting_early">You\'re up early!</string>
+    <string name="greeting_morning">Good morning</string>
+    <string name="greeting_afternoon">Good afternoon</string>
+    <string name="greeting_evening">Good evening</string>
+    <string name="greeting_night">Practicing before bed?</string>
+    <string name="continue_playing">Continue playing</string>
+    <string name="continue_title_format">%1$s · %2$s</string>
+    <plurals name="personal_bests">
+        <item quantity="one">🏆 %d personal best so far — keep it up!</item>
+        <item quantity="other">🏆 %d personal bests so far — keep it up!</item>
+    </plurals>
 </resources>

@@ -54,10 +54,89 @@ html, body {
   font-weight: 800;
 }
 
+.hero-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.mascot svg {
+  display: block;
+}
+
+.wave-arm {
+  transform-origin: 90px 38px;
+  animation: wave 1.8s ease-in-out infinite;
+}
+
+@keyframes wave {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(18deg); }
+}
+
+.greeting {
+  margin: 0 0 2px 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
 .tagline {
   margin: 4px 0 0 0;
   color: var(--text-secondary);
   font-size: 16px;
+}
+
+.continue-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
+  border-radius: 20px;
+  padding: 14px 18px;
+  margin-top: 18px;
+  cursor: pointer;
+  text-align: left;
+  color: var(--text-primary);
+}
+
+.continue-card:active {
+  transform: scale(0.98);
+}
+
+.continue-card .continue-label {
+  margin: 0;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.75;
+}
+
+.continue-card .continue-title {
+  margin: 3px 0 0 0;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.continue-card .continue-play {
+  margin-left: auto;
+  flex-shrink: 0;
+  width: 0;
+  height: 0;
+  border-top: 10px solid transparent;
+  border-bottom: 10px solid transparent;
+  border-left: 14px solid var(--text-primary);
+}
+
+.stats-strip {
+  margin: 12px 0 0 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 600;
 }
 
 .tab-row {

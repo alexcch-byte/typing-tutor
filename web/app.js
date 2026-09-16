@@ -1215,6 +1215,9 @@ const App = {
   init() {
     this.els = {
       homeScreen: document.getElementById('homeScreen'),
+      greetingLabel: document.getElementById('greetingLabel'),
+      continueCard: document.getElementById('continueCard'),
+      statsStrip: document.getElementById('statsStrip'),
       gameTabs: document.getElementById('gameTabs'),
       levelList: document.getElementById('levelList'),
 
@@ -1292,26 +1295,44 @@ const App = {
     this._buildLevelList();
   },
 
+  _gameConfig(gameTypeId) {
+    const configs = {
+      falling_letters: { levels: FALLING_LEVELS, prefix: 'ft_', bestFormat: v => `Best: ${v}`, start: level => this.startFallingLetters(level) },
+      word_rain: { levels: WORD_LEVELS, prefix: 'wr_', bestFormat: v => `Best: ${v}`, start: level => this.startWordRain(level) },
+      typing_race: { levels: SENTENCE_LEVELS, prefix: 'tr_', bestFormat: v => `Best: ${v} WPM`, start: level => this.startTypingRace(level) },
+      key_hero: { levels: RHYTHM_LEVELS, prefix: 'kh_', bestFormat: v => `Best: ${v}`, start: level => this.startKeyHero(level) },
+    };
+    return configs[gameTypeId];
+  },
+
+  _findLevel(gameTypeId, levelId) {
+    const config = this._gameConfig(gameTypeId);
+    return config ? config.levels.find(l => l.id === levelId) : null;
+  },
+
+  _startByGameType(gameTypeId, level) {
+    const config = this._gameConfig(gameTypeId);
+    if (config) config.start(level);
+  },
+
+  _saveLastPlayed(gameTypeId, level) {
+    try {
+      localStorage.setItem('tt_last_played', JSON.stringify({ gameTypeId, levelId: level.id }));
+    } catch (e) { /* storage unavailable; last-played card just won't show */ }
+  },
+
+  _getLastPlayed() {
+    try {
+      const raw = localStorage.getItem('tt_last_played');
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) {
+      return null;
+    }
+  },
+
   _buildLevelList() {
     this.els.levelList.innerHTML = '';
-    let levels, prefix, bestFormat, onSelect;
-    if (this.selectedGame === 'falling_letters') {
-      levels = FALLING_LEVELS; prefix = 'ft_';
-      bestFormat = v => `Best: ${v}`;
-      onSelect = level => this.startFallingLetters(level);
-    } else if (this.selectedGame === 'word_rain') {
-      levels = WORD_LEVELS; prefix = 'wr_';
-      bestFormat = v => `Best: ${v}`;
-      onSelect = level => this.startWordRain(level);
-    } else if (this.selectedGame === 'typing_race') {
-      levels = SENTENCE_LEVELS; prefix = 'tr_';
-      bestFormat = v => `Best: ${v} WPM`;
-      onSelect = level => this.startTypingRace(level);
-    } else {
-      levels = RHYTHM_LEVELS; prefix = 'kh_';
-      bestFormat = v => `Best: ${v}`;
-      onSelect = level => this.startKeyHero(level);
-    }
+    const { levels, prefix, bestFormat, start } = this._gameConfig(this.selectedGame);
 
     for (const level of levels) {
       const card = document.createElement('button');
@@ -1325,9 +1346,63 @@ const App = {
         <span class="level-best">${bestFormat(best)}</span>
         <span class="level-play-icon"></span>
       `;
-      card.addEventListener('click', () => { soundPlayer.load(); onSelect(level); });
+      card.addEventListener('click', () => {
+        soundPlayer.load();
+        this._saveLastPlayed(this.selectedGame, level);
+        start(level);
+      });
       this.els.levelList.appendChild(card);
     }
+  },
+
+  _renderGreeting() {
+    const hour = new Date().getHours();
+    let text;
+    if (hour < 5) text = "You're up early!";
+    else if (hour < 12) text = 'Good morning';
+    else if (hour < 17) text = 'Good afternoon';
+    else if (hour < 21) text = 'Good evening';
+    else text = 'Practicing before bed?';
+    this.els.greetingLabel.textContent = text;
+  },
+
+  _renderContinueCard() {
+    const last = this._getLastPlayed();
+    const level = last ? this._findLevel(last.gameTypeId, last.levelId) : null;
+    const card = this.els.continueCard;
+    if (!last || !level) {
+      card.hidden = true;
+      card.onclick = null;
+      return;
+    }
+    const gameTitle = (GAME_TYPES.find(g => g.id === last.gameTypeId) || {}).title || '';
+    card.hidden = false;
+    card.innerHTML = `
+      <div>
+        <p class="continue-label">Continue playing</p>
+        <p class="continue-title">${escapeHtml(gameTitle)} · ${escapeHtml(level.name)}</p>
+      </div>
+      <span class="continue-play"></span>
+    `;
+    card.onclick = () => {
+      soundPlayer.load();
+      this._startByGameType(last.gameTypeId, level);
+    };
+  },
+
+  _renderStatsStrip() {
+    let count = 0;
+    for (const game of GAME_TYPES) {
+      const { levels, prefix } = this._gameConfig(game.id);
+      for (const level of levels) if (ScoreStore.bestValue(prefix + level.id) > 0) count++;
+    }
+    const el = this.els.statsStrip;
+    if (count === 0) {
+      el.hidden = true;
+      return;
+    }
+    el.hidden = false;
+    el.textContent = `🏆 ${count} personal best${count === 1 ? '' : 's'} so far — keep it up!`;
   },
 
   showHome() {
@@ -1339,6 +1414,9 @@ const App = {
     this.els.homeScreen.hidden = false;
     this.els.gameScreen.hidden = true;
     this.els.raceScreen.hidden = true;
+    this._renderGreeting();
+    this._renderContinueCard();
+    this._renderStatsStrip();
     this._buildLevelList();
   },
 
